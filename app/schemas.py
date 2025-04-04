@@ -48,7 +48,7 @@ class PostResponse(BaseModel):
 # orm_mode=True produce some warning at terminal but program runs fine.
 # 'orm_mode' has been renamed to 'from_attributes'
 #   warnings.warn(message, UserWarning)
-'''Setting orm_mode = True tells Pydantic to treat the SQLAlchemy model as a dictionary-like object, which makes serialization possible
+'''Setting orm_mode = True tells Pydantic to treat the SQLAlchemy model (Object) as a dictionary-like object, which makes serialization(to convert into JSON) possible
 However, this is only applied to individual objects, not to lists of objects which is the case in get("/posts). You need to ensure that when you're returning a list of Post objects, FastAPI can handle this correctly.
 By setting the response_model to List[schemas.PostResponse], FastAPI will iterate over the list of Post objects and convert each one into a PostResponse Pydantic model. 
 The orm_mode = True configuration in the PostResponse model ensures that FastAPI knows how to convert the SQLAlchemy Post objects into dictionaries for JSON serialization.
