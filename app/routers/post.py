@@ -11,31 +11,27 @@ router=APIRouter( prefix="/posts", tags=["Posts"])
 # using tags=["Posts"] helps us to group the requests in docs
 
 
-
-# @router.get("/", response_model=List[schemas.PostResponse])    # for without votes.
+# We are getting all the posts here.
 @router.get("/", response_model=List[schemas.PostOut])
-def get_posts(db: Session = Depends(get_db), current_user: int = Depends(oauth2.get_current_user), limit: int = 5, skip: int = 0, search: Optional[str]=""):
-    #Here probably in the type hint current_user : int, the int doen't matter.(We have not checked it though.)
-    # limit: int=5 is used for query parameter and 5 is default value, thus by default request will retrieve 5 posts.
-    # skip: int=0 is used for query parameter and 0 is default value, thus it will not skip any post if skip is not defined.
-    # search: Optional[str]="" is used for finding post by its column's content.
+def get_posts(
+    db: Session = Depends(get_db), 
+    current_user: int = Depends(oauth2.get_current_user), 
+    limit: int = 5, 
+    skip: int = 0, 
+    search: Optional[str] = ""
+):
+    query = db.query(models.Post, func.count(models.Vote.user_id).label("votes"))\
+              .join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True)\
+              .group_by(models.Post.id)
 
-    # posts=db.query(models.Post).filter(models.Post.owner_id==current_user.id).all()    # Returning the only posts that are created by current user(logged in).
-    # posts=db.query(models.Post).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()  # for without votes.
-    # posts=db.query(models.Post).filter(models.Post.title.contains(search)).limit(limit).offset(skip).all()    
+    # First cheching if search is provided or not.
+    if search:
+        query = query.filter(models.Post.title.ilike(f"%{search}%"))
 
-    # .limit() method helps to retrieve limited posts. It will take limit value from 'limit' variable in def get_posts()
-    # .offset() method helps to skip the posts from top of the table. It will take offset value from 'skip' variable in def get_posts()
-    # .filter(models.Post.title.contains(search)) will find the post which contains the value of 'search' in the title of any posts.
-    # Note that .contains is case sensistive i.e food != Food     OR
-    # ilike(f"%{search}%"): This performs a case-insensitive search for the search string in the title column. 
-    # The % symbols are wildcards that allow matching any characters before or after the search term.
-
-    posts = db.query(models.Post, func.count(models.Vote.user_id).label("votes")).join(models.Vote, models.Post.id == models.Vote.post_id, isouter=True).group_by(models.Post.id).filter(models.Post.title.ilike(f"%{search}%")).limit(limit).offset(skip).all()
-
-    # return posts   # for without votes.
+    # Apply pagination (limit and skip) 
+    query = query.limit(limit).offset(skip)
+    posts = query.all()
     return posts
-
 
 # We are creating posts here.
 @router.post("/", status_code=status.HTTP_201_CREATED, response_model=schemas.PostResponse)
