@@ -4,10 +4,10 @@ from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models, schemas, utils, oauth2
 
-router = APIRouter(tags=["Authentication"])
+router = APIRouter(prefix="/login", tags=["Authentication"])
 
-@router.post("/login", response_model=schemas.Token)
-def login(user_credentials: OAuth2PasswordRequestForm = Depends() ,db: Session = Depends(get_db)):
+@router.post("/", response_model=schemas.Token)
+def login(user_credentials: OAuth2PasswordRequestForm = Depends(OAuth2PasswordRequestForm) ,db: Session = Depends(get_db)):
     # OAuth2PasswordReque stores attempted user access credentials in from of username (not email) and password
     # thus models.User.email == user_credentials.username 
     user = db.query(models.User).filter(models.User.email == user_credentials.username).first()
