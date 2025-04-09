@@ -43,6 +43,3 @@ def vote(vote: schemas.Vote, db: Session = Depends(get_db), current_user: int = 
         db.commit()
         return {"message": "Successfully deleted vote."}
     
-
-# Do not add invalid post_id which does not exists in the posts table as it will raise an foreign key violation error in terminal.
-# We have just created logic to like and remove like to already existing post in posts table.
