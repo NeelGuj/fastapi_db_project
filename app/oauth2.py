@@ -29,29 +29,35 @@ def create_access_token(data: dict):
 # data and we don't want our original data to change.
 
 
-def verify_access_token(token: str, credential_exception):
+def verify_access_token(raw_token: str, credential_exception):
     try:
-        payload= jwt.decode(token, SECRET_KEY, [ALGORITHM])
-        id: str = payload.get("user_id")
-        if id is None:
+        payload= jwt.decode(raw_token, SECRET_KEY, [ALGORITHM])   ## payload is a dictionary containing the data (user id) we passed while creating the token.
+        user_id: str = payload.get("user_id")
+        if user_id is None:
             raise credential_exception
-        token_data = schemas.TokenData(id=id)
+        token_data = schemas.TokenData(id=user_id)
     except JWTError:
         raise credential_exception
     return token_data   
 # token_data is nothing but the id of the user making request. We can return multiple fields if we want.
 
 
-def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+def get_current_user(raw_token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     credential_exception= HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
-    token= verify_access_token(token, credential_exception)
-    user=db.query(models.User).filter(models.User.id==token.id).first()
+    decoded_token= verify_access_token(raw_token, credential_exception)
+    user=db.query(models.User).filter(models.User.id==decoded_token.id).first()
     return user  
 #it will return a user or current_user object which contain all the information and we can access them by user.id or user.email.
 # status_code=status.HTTP_401_UNAUTHORIZED will produce  "detail": "Not authenticated" if token is not provided.
 # status_code=status.HTTP_401_UNAUTHORIZED will produce  "detail="Could not validate credentials" if token is not correct or expired.
 
+'''
+raw_token:
+This variable now clearly indicates that it holds the raw JWT token extracted from the Authorization header.
 
+decoded_token:
+This variable now clearly indicates that it holds the decoded payload of the JWT token after it has been verified by verify_access_token.
+'''
 
 '''In Postman we need to get token by login and hardcode it in the Authorization Token field to access end points or requests.
 To solve this problem we wrote a script in the Scripts section in the Login User request that will auatomatically

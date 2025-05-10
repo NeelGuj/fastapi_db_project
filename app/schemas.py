@@ -75,13 +75,15 @@ class UserOut(BaseModel):
     class Config:
         from_attributes= True   # or orm_mode= True
 
-
 #login authenticaton
 # class UserLogin(BaseModel):
 #     email: EmailStr
 #     password: str  
 # not needed because we used user_credentials: OAuth2PasswordRequestForm = Depends() in def login()
 
+class UserUpdate(BaseModel):
+    email: Optional[EmailStr] = None
+    password: Optional[str] = None
 
 class Token(BaseModel):
     access_token: str

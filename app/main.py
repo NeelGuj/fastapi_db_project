@@ -13,7 +13,7 @@ from .routers import post, user
 from app.routers import post, user
 '''
 
-models.Base.metadata.create_all(bind=engine)  # Uncomment it when you use only sqlalchemy and not alembic
+# models.Base.metadata.create_all(bind=engine)  # Uncomment it when you use only sqlalchemy and not alembic
 # The create_all() method creates the tables in the database based on the models you've defined.
 # The bind parameter is the database engine to use to connect to the database.
 
